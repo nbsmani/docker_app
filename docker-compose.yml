@@ -1,0 +1,26 @@
+services:
+  app:
+    image: etl
+    volumes:
+      - ./output:/app/output
+    depends_on:
+      - postgres
+    networks:
+      - my-network
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: mydata
+      POSTGRES_USER: balu
+      POSTGRES_PASSWORD: bn
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - my-network
+volumes:
+  pgdata:
+networks:
+  my-network:
+    driver: bridge
