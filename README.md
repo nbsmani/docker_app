@@ -10,6 +10,7 @@ This version includes a streamlit dashboard.
 ```bash
 docker build -t etl .
 docker-compose up -d
+```
 
 ## Result
 The dashboard can be accessed at http://0.0.0.0:8501/ in a web browser.
