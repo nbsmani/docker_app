@@ -7,7 +7,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Copy app files
 COPY process_data.py .
+COPY dashboard.py .
 COPY batch1.csv batch2.csv .
 # Run the script
-ENTRYPOINT [ "python","process_data.py" ]
-CMD ["batch1.csv"]
+ENTRYPOINT [ "python" ]
+CMD ["process_data.py","batch1.csv"]

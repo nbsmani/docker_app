@@ -5,11 +5,9 @@ services:
       - ./output:/app/output
     depends_on:
       - postgres
-    deploy:
-      replicas: 2
     networks:
       - my-network
-    command: ["batch1.csv"]
+    command: ["process_data.py","batch1.csv"]
   app2:
     image: etl
     volumes:
@@ -18,7 +16,7 @@ services:
       - postgres
     networks:
       - my-network
-    command: ["batch2.csv"]
+    command: ["process_data.py","batch2.csv"]
   postgres:
     image: postgres:13
     environment:
@@ -31,6 +29,16 @@ services:
       - "5432:5432"
     networks:
       - my-network
+  dashboard:
+    image: etl
+    ports: 
+      - 8501:8501
+    depends_on:
+      - postgres
+    networks:
+      - my-network
+    command: ["-m", "streamlit", "run", "dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
 volumes:
   pgdata:
 networks:
