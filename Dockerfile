@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Copy app files
 COPY process_data.py .
-COPY input.csv input2.csv .
+COPY batch1.csv batch2.csv .
 # Run the script
 ENTRYPOINT [ "python","process_data.py" ]
-CMD ["input.csv"]
+CMD ["batch1.csv"]

@@ -5,8 +5,20 @@ services:
       - ./output:/app/output
     depends_on:
       - postgres
+    deploy:
+      replicas: 2
     networks:
       - my-network
+    command: ["batch1.csv"]
+  app2:
+    image: etl
+    volumes:
+      - ./output:/app/output
+    depends_on:
+      - postgres
+    networks:
+      - my-network
+    command: ["batch2.csv"]
   postgres:
     image: postgres:13
     environment:
