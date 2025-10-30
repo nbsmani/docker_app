@@ -1,20 +1,32 @@
 # Dockerfile.spark — BALU ULTRA-SLIM
 FROM python:3.9-alpine as builder
 
+# Install Bash
+RUN apk add --no-cache bash
+
 # Install Java
 RUN apk add --no-cache openjdk17-jre
 
 # Download Spark (cached in context)
-COPY spark-3.5.0-bin-hadoop3.tgz /tmp/
-RUN tar xzf /tmp/spark-3.5.0-bin-hadoop3.tgz -C /opt/ && \
-    mv /opt/spark-3.5.0-bin-hadoop3 /opt/spark && \
-    rm /tmp/spark-3.5.0-bin-hadoop3.tgz
+COPY spark-3.5.6-bin-hadoop3.tgz /tmp/
+RUN tar xzf /tmp/spark-3.5.6-bin-hadoop3.tgz -C /opt/ && \
+    mv /opt/spark-3.5.6-bin-hadoop3 /opt/spark && \
+    rm /tmp/spark-3.5.6-bin-hadoop3.tgz
 
 FROM python:3.9-alpine
 
-# Copy Java + Spark
-COPY --from=builder /usr/lib/jvm/java-17-openjdk /usr/lib/jvm/java-17-openjdk
+# Install bash in the final stage too
+RUN apk add --no-cache bash openjdk17-jre
+
+# Copy Spark only (Java is already installed above)
 COPY --from=builder /opt/spark /opt/spark
+
+# Create user FIRST
+RUN adduser -D spark
+
+# THEN set permissions for Spark work directory
+RUN mkdir -p /opt/spark/work && \
+    chown -R spark:spark /opt/spark/work
 
 # Set env
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
@@ -23,9 +35,8 @@ ENV PATH=$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH
 ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-*.zip:$PYTHONPATH
 
 # Install PySpark (for Python API)
-RUN pip install --no-cache-dir pyspark==3.5.0 pandas sqlalchemy psycopg2-binary
+RUN pip install --no-cache-dir pyspark==3.5.6 pandas sqlalchemy psycopg2-binary
 
-# User
-RUN adduser -D spark
+# Switch to spark user
 USER spark
 WORKDIR /home/spark

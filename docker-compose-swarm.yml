@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  spark-master:
+    image: etl-spark:ultra
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+      - target: 7077
+        published: 7077
+        protocol: tcp
+        mode: host
+    environment:
+      SPARK_MASTER_HOST: "0.0.0.0"
+      SPARK_MASTER_PORT: "7077"
+      SPARK_MASTER_WEBUI_PORT: "8080"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - de-swarm-net
+
+  spark-worker:
+    image: etl-spark:ultra
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      SPARK_WORKER_CORES: "1"
+      SPARK_WORKER_MEMORY: "1g"
+    deploy:
+      replicas: 1
+    depends_on:
+      - spark-master
+    networks:
+      - de-swarm-net
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: mydata
+      POSTGRES_USER: balu
+      POSTGRES_PASSWORD: bn
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+    networks:
+      - de-swarm-net
+
+  etl:
+    image: etl
+    command: ["process_data.py", "batch1.csv"]
+    volumes:
+      - ./:/app
+    deploy:
+      replicas: 1
+    depends_on:
+      - postgres
+    networks:
+      - de-swarm-net
+
+volumes:
+  pgdata:
+
+networks:
+  de-swarm-net:
+    external: true
